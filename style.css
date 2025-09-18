@@ -1,0 +1,156 @@
+
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BODY Y FONDO */
+body {
+  margin: 0;
+  background: url('mambofondo.png') no-repeat center center fixed;
+  background-size: cover;
+  font-family: sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* BURBUJA INSTALAR ANDROID */
+#install-bubble {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: #40a8f4; /* celeste parecido al logo */
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10000;
+  user-select: none;
+  font-family: Arial, sans-serif;
+  transition: transform 0.3s ease;
+  display: none;
+}
+#install-bubble:hover {
+  background: #1f75d1;
+  transform: scale(1.05);
+}
+
+/* CUADRO INFO IOS */
+#ios-install-info {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0d47a1;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 15px;
+  max-width: 320px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 10001;
+  display: none;
+}
+#ios-install-info button {
+  margin-top: 10px;
+  background: #25d366;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  font-size: 14px;
+}
+
+/* BOTONES REDES SOCIALES */
+.social-bubbles {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 9999;
+}
+
+.social-bubbles a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+.social-bubbles a:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+.social-bubbles img {
+  width: 24px;
+  height: 24px;
+}
+
+/* ANIMACIÓN FLOTAR BOTONES */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* REPRODUCTOR */
+.radio-player {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(0,0,0,0.6);
+  padding: 10px 20px;
+  border-radius: 30px;
+  z-index: 9999;
+}
+
+.play-btn {
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: #1e1e1e;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+
+/* BARRAS DEL SPECTRUM */
+.spectrum {
+  display: flex;
+  gap: 4px;
+  height: 40px;
+  align-items: end;
+}
+
+.bar {
+  width: 6px;
+  background: #4ade80;
+  height: 10%;
+  transition: height 0.2s ease-out;
+}

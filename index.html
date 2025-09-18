@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RADIO MAMBO</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000"/>
+  <link rel="apple-touch-icon" href="iconomambo.png" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Redes sociales horizontales arriba del reproductor */
+    .social-bubbles {
+      position: relative;
+      bottom: 90px; /* se ajusta para estar arriba del reproductor */
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      z-index: 9999;
+      flex-wrap: wrap; /* para pantallas pequeñas */
+    }
+
+    .social-bubbles a {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      box-shadow: 0 0 20px rgba(255,255,255,0.6);
+      position: relative;
+      overflow: hidden;
+      animation: pulseGlow 2s infinite ease-in-out;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .social-bubbles a:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 30px rgba(255,255,255,0.9);
+    }
+
+    .social-bubbles img {
+      width: 28px;
+      height: 28px;
+      z-index: 2;
+    }
+
+    /* Destello animado */
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 10px rgba(255,255,255,0.4); }
+      50% { box-shadow: 0 0 25px rgba(255,255,255,0.9); }
+      100% { box-shadow: 0 0 10px rgba(255,255,255,0.4); }
+    }
+
+    /* Ajuste para pantallas muy pequeñas */
+    @media (max-width: 480px) {
+      .social-bubbles {
+        gap: 12px;
+      }
+      .social-bubbles a {
+        width: 45px;
+        height: 45px;
+      }
+      .social-bubbles img {
+        width: 22px;
+        height: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Redes sociales horizontales -->
+  <div class="social-bubbles">
+    <a href="https://www.facebook.com/profile.php?id=61566406267706" target="_blank" title="Facebook">
+      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" />
+    </a>
+    <a href="https://www.instagram.com/radiomambo5?igsh=bjNtMm0yODZhbzY3&utm_source=qr" target="_blank" title="Instagram">
+      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg" alt="Instagram" />
+    </a>
+    <a href="https://www.tiktok.com/@radiomambo5?_t=ZP-8x0fjY7f5xO&_r=1" target="_blank" title="TikTok">
+      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/tiktok.svg" alt="TikTok" />
+    </a>
+  </div>
+
+  <!-- Reproductor -->
+  <div class="radio-player">
+    <button class="play-btn" id="playPauseBtn">▶</button>
+    <div class="spectrum" id="spectrum"></div>
+  </div>
+
+  <audio id="audio" preload="none"></audio>
+
+  <!-- Burbuja instalar para Android -->
+  <div id="install-bubble" style="display:none;">📲 Instalar app</div>
+
+  <!-- Cuadro info iPhone -->
+  <div id="ios-install-info" style="display:none;">
+    Para instalar esta app en tu iPhone, toca el botón <strong>Compartir</strong> y luego <strong>Agregar a pantalla de inicio</strong>.
+    <button id="close-ios-info">Cerrar</button>
+  </div>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const spectrum = document.getElementById('spectrum');
+    let isPlaying = false;
+    let animationId;
+
+    const bars = [];
+    for (let i = 0; i < 16; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      spectrum.appendChild(bar);
+      bars.push(bar);
+    }
+
+    function animateFakeSpectrum() {
+      bars.forEach((bar) => {
+        const height = Math.random() * 100;
+        bar.style.height = height + '%';
+      });
+      animationId = requestAnimationFrame(animateFakeSpectrum);
+    }
+
+    // ---- PLAY / STOP ----
+    playPauseBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
+        audio.play().then(() => {
+          playPauseBtn.textContent = '⏹'; // STOP
+          animateFakeSpectrum();
+          isPlaying = true;
+        }).catch(err => {
+          console.error('Error al reproducir:', err);
+        });
+      } else {
+        audio.pause();
+        audio.src = ''; // reset stream
+        playPauseBtn.textContent = '▶'; // PLAY
+        cancelAnimationFrame(animationId);
+        isPlaying = false;
+      }
+    });
+
+    // ---- Recuperar stream en vivo después de llamada o cambio ----
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && isPlaying) {
+        audio.pause();
+        audio.src = '';
+        audio.load();
+        audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
+        audio.play().catch(err => {
+          console.error('Error al reanudar el stream:', err);
+        });
+      }
+    });
+
+    // ---- Reconexión automática en cortes ----
+    audio.addEventListener('stalled', () => {
+      if (isPlaying) {
+        setTimeout(() => {
+          audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
+          audio.play();
+        }, 2000);
+      }
+    });
+
+    audio.addEventListener('error', () => {
+      if (isPlaying) {
+        setTimeout(() => {
+          audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
+          audio.play();
+        }, 2000);
+      }
+    });
+
+    // -- PWA INSTALACIÓN --
+    let deferredPrompt;
+    const installBubble = document.getElementById('install-bubble');
+    const iosInstallInfo = document.getElementById('ios-install-info');
+    const closeIosBtn = document.getElementById('close-ios-info');
+    const isAndroid = /android/i.test(navigator.userAgent);
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      if (isAndroid) {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBubble.style.display = 'block';
+      }
+    });
+
+    installBubble.addEventListener('click', async () => {
+      installBubble.style.display = 'none';
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      }
+    });
+
+    window.addEventListener('load', () => {
+      if (isIos && !window.matchMedia('(display-mode: standalone)').matches) {
+        if (!localStorage.getItem('iosInstallInfoClosed')) {
+          iosInstallInfo.style.display = 'block';
+        }
+      }
+    });
+
+    closeIosBtn.addEventListener('click', () => {
+      iosInstallInfo.style.display = 'none';
+      localStorage.setItem('iosInstallInfoClosed', 'true');
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
