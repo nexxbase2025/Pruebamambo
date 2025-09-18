@@ -13,7 +13,7 @@
     /* Redes sociales horizontales arriba del reproductor */
     .social-bubbles {
       position: relative;
-      bottom: 90px; /* se ajusta para estar arriba del reproductor */
+      bottom: 90px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -22,7 +22,7 @@
       align-items: center;
       gap: 20px;
       z-index: 9999;
-      flex-wrap: wrap; /* para pantallas pequeñas */
+      flex-wrap: wrap;
     }
 
     .social-bubbles a {
@@ -33,7 +33,6 @@
       height: 55px;
       border-radius: 50%;
       background-color: #ffffff;
-      box-shadow: 0 0 20px rgba(255,255,255,0.6);
       position: relative;
       overflow: hidden;
       animation: pulseGlow 2s infinite ease-in-out;
@@ -46,8 +45,8 @@
     }
 
     .social-bubbles img {
-      width: 28px;
-      height: 28px;
+      width: 35px;
+      height: 35px;
       z-index: 2;
     }
 
@@ -58,7 +57,6 @@
       100% { box-shadow: 0 0 10px rgba(255,255,255,0.4); }
     }
 
-    /* Ajuste para pantallas muy pequeñas */
     @media (max-width: 480px) {
       .social-bubbles {
         gap: 12px;
@@ -68,23 +66,69 @@
         height: 45px;
       }
       .social-bubbles img {
-        width: 22px;
-        height: 22px;
+        width: 45px;
+        height: 45px;
+      }
+    }
+
+    /* Botón flotante de compartir */
+    #share-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: #40a8f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 10001;
+      animation: pulseGlow 2s infinite ease-in-out;
+      transition: transform 0.2s ease;
+    }
+
+    #share-btn:hover {
+      transform: scale(1.1);
+      background: #1f75d1;
+    }
+
+    #share-btn img {
+      width: 40px;
+      height: 40px;
+      filter: invert(1);
+    }
+
+    @media (max-width: 480px) {
+      #share-btn {
+        width: 48px;
+        height: 48px;
+      }
+      #share-btn img {
+        width: 45px;
+        height: 45px;
       }
     }
   </style>
 </head>
 <body>
-  <!-- Redes sociales horizontales -->
+  <!-- Botón de compartir -->
+  <div id="share-btn" title="Compartir">
+    <img src="share.png" alt="Compartir" />
+  </div>
+
+  <!-- Redes sociales con íconos locales -->
   <div class="social-bubbles">
     <a href="https://www.facebook.com/profile.php?id=61566406267706" target="_blank" title="Facebook">
-      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" />
+      <img src="facebook.png" alt="Facebook" />
     </a>
     <a href="https://www.instagram.com/radiomambo5?igsh=bjNtMm0yODZhbzY3&utm_source=qr" target="_blank" title="Instagram">
-      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg" alt="Instagram" />
+      <img src="instagram.png" alt="Instagram" />
     </a>
     <a href="https://www.tiktok.com/@radiomambo5?_t=ZP-8x0fjY7f5xO&_r=1" target="_blank" title="TikTok">
-      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/tiktok.svg" alt="TikTok" />
+      <img src="tiktok.png" alt="TikTok" />
     </a>
   </div>
 
@@ -94,7 +138,7 @@
     <div class="spectrum" id="spectrum"></div>
   </div>
 
-  <audio id="audio" preload="none"></audio>
+  <audio id="audio" preload="auto"></audio>
 
   <!-- Burbuja instalar para Android -->
   <div id="install-bubble" style="display:none;">📲 Instalar app</div>
@@ -112,6 +156,9 @@
     let isPlaying = false;
     let animationId;
 
+    const STREAM_URL = "https://stream.zeno.fm/utwmdnuwlafuv";
+
+    // Crear barras del espectro
     const bars = [];
     for (let i = 0; i < 16; i++) {
       const bar = document.createElement('div');
@@ -128,10 +175,17 @@
       animationId = requestAnimationFrame(animateFakeSpectrum);
     }
 
+    // ---- Precargar stream ----
+    window.addEventListener('load', () => {
+      audio.src = STREAM_URL;
+      audio.load();
+    });
+
     // ---- PLAY / STOP ----
     playPauseBtn.addEventListener('click', () => {
       if (!isPlaying) {
-        audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
+        audio.src = STREAM_URL;
+        audio.volume = 1;
         audio.play().then(() => {
           playPauseBtn.textContent = '⏹'; // STOP
           animateFakeSpectrum();
@@ -141,42 +195,72 @@
         });
       } else {
         audio.pause();
-        audio.src = ''; // reset stream
+        audio.src = '';
         playPauseBtn.textContent = '▶'; // PLAY
         cancelAnimationFrame(animationId);
         isPlaying = false;
       }
     });
 
-    // ---- Recuperar stream en vivo después de llamada o cambio ----
+    // ---- Fade-in tras interrupciones ----
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && isPlaying) {
         audio.pause();
-        audio.src = '';
-        audio.load();
-        audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
-        audio.play().catch(err => {
+        audio.src = STREAM_URL;
+        audio.play().then(() => {
+          audio.volume = 0;
+          let v = 0;
+          const fade = setInterval(() => {
+            if (v < 1) {
+              v += 0.1;
+              audio.volume = v;
+            } else {
+              clearInterval(fade);
+            }
+          }, 100);
+        }).catch(err => {
           console.error('Error al reanudar el stream:', err);
         });
       }
     });
 
-    // ---- Reconexión automática en cortes ----
-    audio.addEventListener('stalled', () => {
+    // ---- Reconexión automática ----
+    function reconnect() {
       if (isPlaying) {
-        setTimeout(() => {
-          audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
-          audio.play();
-        }, 2000);
+        audio.pause();
+        audio.src = STREAM_URL;
+        audio.play().catch(err => console.error("Reintento:", err));
       }
+    }
+
+    audio.addEventListener('stalled', reconnect);
+    audio.addEventListener('error', reconnect);
+
+    // ---- Redes sociales externo ----
+    document.querySelectorAll('.social-bubbles a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = link.href;
+        window.open(url, '_blank', 'noopener,noreferrer');
+      });
     });
 
-    audio.addEventListener('error', () => {
-      if (isPlaying) {
-        setTimeout(() => {
-          audio.src = 'https://stream.zeno.fm/utwmdnuwlafuv';
-          audio.play();
-        }, 2000);
+    // ---- Botón de compartir ----
+    document.getElementById('share-btn').addEventListener('click', async () => {
+      const shareData = {
+        title: "Radio Mambo",
+        text: "Escucha Radio Mambo en vivo 🎶📲",
+        url: "https://tu-enlace-aqui.com" // <-- cámbialo por tu link real
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          console.log("Compartido exitosamente");
+        } catch (err) {
+          console.warn("No se pudo compartir:", err);
+        }
+      } else {
+        alert("La función de compartir no es compatible en este navegador.");
       }
     });
 
